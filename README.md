@@ -21,5 +21,4 @@ $ python demo.py
 ![image](https://github.com/foamliu/Neural-Style-Transfer/raw/master/images/style.jpg)
 
 ### 合成图片
-### 合成图片
 ![image](https://github.com/foamliu/Neural-Style-Transfer/raw/master/images/output.png)
