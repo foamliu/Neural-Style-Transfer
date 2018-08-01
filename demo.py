@@ -1,24 +1,11 @@
 import scipy.misc
 import tensorflow as tf
-from keras.applications.vgg19 import VGG19
 
 from utils import compute_content_cost, compute_style_cost, total_cost, generate_noise_image, save_image, \
-    reshape_and_normalize_image
-
-# Parameters
-alpha = 10
-beta = 40
-iterations = 200
-
-STYLE_LAYERS = [
-    ('conv1_1', 0.2),
-    ('conv2_1', 0.2),
-    ('conv3_1', 0.2),
-    ('conv4_1', 0.2),
-    ('conv5_1', 0.2)]
+    reshape_and_normalize_image, load_vgg_model
 
 
-def transfer(path_generated_image, num_iterations=200):
+def transfer(num_iterations=200):
     # Reset the graph
     tf.reset_default_graph()
 
@@ -29,7 +16,7 @@ def transfer(path_generated_image, num_iterations=200):
     generated_image = generate_noise_image(content_image)
 
     # load VGG19 model
-    model = VGG19(include_top=True, weights='imagenet')
+    model = load_vgg_model("pretrained-model/imagenet-vgg-verydeep-19.mat")
 
     # Assign the content image to be the input of the VGG model.
     sess.run(model['input'].assign(content_image))
@@ -52,7 +39,7 @@ def transfer(path_generated_image, num_iterations=200):
     sess.run(model['input'].assign(style_image))
 
     # Compute the style cost
-    J_style = compute_style_cost(model, STYLE_LAYERS)
+    J_style = compute_style_cost(sess, model)
 
     J = total_cost(J_content, J_style, alpha, beta)  # 10,40
 
@@ -85,20 +72,25 @@ def transfer(path_generated_image, num_iterations=200):
             print("style cost = " + str(Js))
 
             # save current generated image in the "/output" directory
-            save_image("output/" + str(i) + ".png", generated_image)
+            save_image("images/" + str(i) + ".png", generated_image)
 
     # save last generated image
 
-    save_image(path_generated_image, generated_image)
+    save_image("images/output.png", generated_image)
 
     return generated_image
 
 
 if __name__ == '__main__':
+    # Parameters
+    alpha = 10
+    beta = 40
+    iterations = 200
+
     content_image = scipy.misc.imread("images/content.jpg")
     content_image = reshape_and_normalize_image(content_image)
     style_image = scipy.misc.imread("images/style.jpg")
     style_image = reshape_and_normalize_image(style_image)
     generated_image = generate_noise_image(content_image)
 
-    transfer('images')
+    transfer()
